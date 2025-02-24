@@ -7,10 +7,6 @@ const router = createBrowserRouter([
     path: "/",
     element: <StoreUpdateDemo />,
   },
-  {
-    path: "/test",
-    element: <TestPage />,
-  },
 ]);
 
 export default router;

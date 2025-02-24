@@ -1,132 +1,102 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useStore } from "../../stores/center";
 import styles from "./index.module.scss";
 
-// 使用 useStore 的组件会响应所有 store 的变化
-const StoreDisplay: React.FC = () => {
-  const { counterStore, userStore } = useStore();
+// 只监听 counter 相关数据的组件
+const CounterDisplay: React.FC = () => {
+  const counterSelector = useCallback(
+    (stores) => ({
+      count: stores.counterStore.count,
+      operationCount: stores.counterStore.operationCount,
+    }),
+    [],
+  );
 
-  const handleAddSocialAccount = () => {
-    userStore.addSocialAccount({
-      platform: `平台${Math.floor(Math.random() * 100)}`,
-      username: `用户${Math.floor(Math.random() * 100)}`,
-      isVerified: Math.random() > 0.5,
-    });
-  };
+  const { count, operationCount } = useStore(counterSelector);
 
-  const handleUpdateContact = () => {
-    userStore.setContact({
-      email: `user${Math.floor(Math.random() * 100)}@example.com`,
-      phone: `1380013${Math.floor(Math.random() * 10000)}`,
-    });
-  };
-
-  const handleUpdateAddress = () => {
-    userStore.setAddress({
-      province: ["广东", "北京", "上海", "四川"][Math.floor(Math.random() * 4)],
-      city: ["深圳", "广州", "成都", "杭州"][Math.floor(Math.random() * 4)],
-      detail: `示例街道${Math.floor(Math.random() * 100)}号`,
-    });
-  };
+  console.log("CounterDisplay 重新渲染");
 
   return (
     <div className={styles["store-card"]}>
-      <h3>Store 监听</h3>
+      <h3>Counter 监听 (仅监听 counter 数据)</h3>
       <div>
-        <h4>Counter Store:</h4>
-        <p>计数: {counterStore.count}</p>
-        <p>操作次数: {counterStore.operationCount}</p>
-        <div className={styles["button-group"]}>
-          <button onClick={counterStore.increment}>增加</button>
-          <button onClick={counterStore.decrement}>减少</button>
-        </div>
+        <p>计数: {count}</p>
+        <p>操作次数: {operationCount}</p>
       </div>
+    </div>
+  );
+};
 
-      <div style={{ marginTop: "1rem" }}>
-        <h4>User Store:</h4>
-        {/* 基础信息 */}
-        <div className={styles["section"]}>
-          <h5>基础信息</h5>
-          <p>姓名: {userStore.name}</p>
-          <p>年龄: {userStore.age}</p>
-          <div className={styles["button-group"]}>
-            <button onClick={() => userStore.setName("用户" + Math.floor(Math.random() * 100))}>
-              随机名字
-            </button>
-            <button onClick={() => userStore.setAge(Math.floor(Math.random() * 50 + 18))}>
-              随机年龄
-            </button>
-          </div>
-        </div>
+// 只监听用户基础信息的组件
+const UserBasicDisplay: React.FC = () => {
+  const userBasicSelector = useCallback(
+    (stores) => ({
+      name: stores.userStore.name,
+      age: stores.userStore.age,
+    }),
+    [],
+  );
 
-        {/* 联系信息 */}
-        <div className={styles["section"]}>
-          <h5>联系信息</h5>
-          <p>邮箱: {userStore.contact.email}</p>
-          <p>电话: {userStore.contact.phone}</p>
-          <p>
-            地址: {userStore.contact.address.province} {userStore.contact.address.city}{" "}
-            {userStore.contact.address.detail}
-          </p>
-          <div className={styles["button-group"]}>
-            <button onClick={handleUpdateContact}>更新联系方式</button>
-            <button onClick={handleUpdateAddress}>更新地址</button>
-          </div>
-        </div>
+  const { name, age } = useStore(userBasicSelector);
 
-        {/* 社交账号 */}
-        <div className={styles["section"]}>
-          <h5>社交账号</h5>
-          {userStore.socialAccounts.map((account, index) => (
-            <div key={index} style={{ marginBottom: "0.5rem" }}>
-              <p>平台: {account.platform}</p>
-              <p>用户名: {account.username}</p>
-              <p>已认证: {account.isVerified ? "是" : "否"}</p>
-            </div>
-          ))}
-          <div className={styles["button-group"]}>
-            <button onClick={handleAddSocialAccount}>添加社交账号</button>
-            {userStore.socialAccounts.length > 0 && (
-              <button
-                onClick={() => userStore.removeSocialAccount(userStore.socialAccounts[0].platform)}
-              >
-                删除第一个账号
-              </button>
-            )}
-          </div>
-        </div>
+  console.log("UserBasicDisplay 重新渲染");
 
-        {/* 偏好设置 */}
-        <div className={styles["section"]}>
-          <h5>偏好设置</h5>
-          <p>主题: {userStore.preferences.theme}</p>
-          <p>语言: {userStore.preferences.language}</p>
-          <p>字体大小: {userStore.preferences.display.fontSize}</p>
-          <p>主题色: {userStore.preferences.display.colorMode.primary}</p>
-          <div className={styles["button-group"]}>
-            <button
-              onClick={() =>
-                userStore.setTheme(userStore.preferences.theme === "light" ? "dark" : "light")
-              }
-            >
-              切换主题
-            </button>
-            <button
-              onClick={() =>
-                userStore.setLanguage(userStore.preferences.language === "zh" ? "en" : "zh")
-              }
-            >
-              切换语言
-            </button>
-            <button
-              onClick={() =>
-                userStore.setDisplayPreferences({ fontSize: Math.floor(Math.random() * 10) + 12 })
-              }
-            >
-              随机字体大小
-            </button>
-          </div>
-        </div>
+  return (
+    <div className={styles["store-card"]}>
+      <h3>用户基础信息 (仅监听 name 和 age)</h3>
+      <div className={styles["section"]}>
+        <p>姓名: {name}</p>
+        <p>年龄: {age}</p>
+      </div>
+    </div>
+  );
+};
+
+// 只监听用户偏好设置的组件
+const UserPreferencesDisplay: React.FC = () => {
+  const preferencesSelector = useCallback((stores) => stores.userStore.preferences, []);
+
+  const preferences = useStore(preferencesSelector);
+
+  console.log("UserPreferencesDisplay 重新渲染");
+
+  return (
+    <div className={styles["store-card"]}>
+      <h3>用户偏好设置 (仅监听 preferences)</h3>
+      <div className={styles["section"]}>
+        <p>主题: {preferences.theme}</p>
+        <p>语言: {preferences.language}</p>
+        <p>字体大小: {preferences.display.fontSize}</p>
+        <p>主题色: {preferences.display.colorMode.primary}</p>
+      </div>
+    </div>
+  );
+};
+
+// 控制面板组件
+const ControlPanel: React.FC = () => {
+  // 控制面板需要完整的 store 访问权限，所以不需要选择器
+  const { counterStore, userStore } = useStore();
+
+  return (
+    <div className={styles["store-card"]}>
+      <h3>控制面板</h3>
+      <div className={styles["button-group"]}>
+        <button onClick={counterStore.increment}>增加计数</button>
+        <button onClick={counterStore.decrement}>减少计数</button>
+        <button onClick={() => userStore.setName("用户" + Math.floor(Math.random() * 100))}>
+          修改用户名
+        </button>
+        <button onClick={() => userStore.setAge(Math.floor(Math.random() * 50 + 18))}>
+          修改年龄
+        </button>
+        <button
+          onClick={() =>
+            userStore.setTheme(userStore.preferences.theme === "light" ? "dark" : "light")
+          }
+        >
+          切换主题
+        </button>
       </div>
     </div>
   );
@@ -137,9 +107,15 @@ const StoreUpdateDemo: React.FC = () => {
   return (
     <div className={styles["test-page"]}>
       <div className={styles["outter"]}>
-        <h1>Store 更新监听演示</h1>
+        <h1>Store 选择性监听演示</h1>
+        <p className={styles["description"]}>
+          每个组件只监听自己需要的数据，查看控制台可以看到不同操作只会触发相关组件的重新渲染
+        </p>
         <div className={styles["cards-container"]}>
-          <StoreDisplay />
+          <ControlPanel />
+          <CounterDisplay />
+          <UserBasicDisplay />
+          <UserPreferencesDisplay />
         </div>
       </div>
     </div>
