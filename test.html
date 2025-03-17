@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>浏览器多线程文件传输</title>
+</head>
+
+<body>
+    <input type="file" id="fileInput">
+    <script>
+        // 创建 Web Worker
+        const worker = new Worker('./file-transfer-worker.js');
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // 创建高性能文件读取通道
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                // 使用 Transferable Objects 转移数据所有权
+                const arrayBuffer = event.target.result;
+
+                // 性能监控
+                const startTime = performance.now();
+
+                // 发送原始二进制数据到 Worker
+                worker.postMessage({
+                    action: 'process',
+                    payload: arrayBuffer,
+                    timestamp: startTime
+                }, [arrayBuffer]);  // 关键：通过 Transferable 避免内存拷贝
+
+                console.log(`主线程传输耗时：${(performance.now() - startTime).toFixed(2)}ms`);
+            };
+
+            reader.onerror = (error) => {
+                console.error('文件读取失败:', error);
+            };
+
+            // 高性能读取模式
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 接收 Worker 处理结果
+        worker.onmessage = function (e) {
+            console.log('收到处理结果:', e.data);
+        };
+    </script>
+</body>
+
+</html>
