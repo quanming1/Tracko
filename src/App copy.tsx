@@ -13,13 +13,10 @@ const App: React.FC = () => {
 
       <CacheGroup groupId="test-group" capacity={10}>
         {isshow && (
-          <CacheDom
-            deps={{
-              num,
-            }}
-            cacheKey="test-dom"
-          >
-            {Comp}
+          <CacheDom deps={[num]} cacheKey="test-dom">
+            <div>
+              <Comp num={num} />
+            </div>
           </CacheDom>
         )}
         <Button onClick={() => setIsshow(() => !isshow)}>切换显示</Button>
@@ -29,16 +26,12 @@ const App: React.FC = () => {
   );
 };
 
-function Comp(props: { num: number }) {
-  const { num } = props;
+function Comp({ num }: { num: number }) {
   const [count, setCount] = React.useState<number>(0);
-  console.log("num", props);
 
   useEffect(() => {
     console.log("加载了");
   }, []);
-
-  console.log("变化了");
 
   return (
     <div>

@@ -1,5 +1,8 @@
-$main-color: red;
+// 主题颜色
+$main-color: #1890ff;
 $main-green: #00b96b;
+$main-red: #ff4d4f;
+$main-yellow: #faad14;
 
 // 重置默认样式
 * {
@@ -21,4 +24,36 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     "Noto Color Emoji";
+  color: #333;
+  line-height: 1.5;
+  background-color: #f5f7fa;
+}
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// 通用动画
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// 通用过渡效果
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0;
+  }
 }
