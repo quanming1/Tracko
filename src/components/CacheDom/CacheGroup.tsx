@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
-import { CacheContext } from './context';
-import type { Root } from 'react-dom/client';
-import { LRUCache } from './LRUCache';
+import React, { useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
+import { CacheContext } from "./context";
+import type { Root } from "react-dom/client";
+import { LRUCache } from "./LRUCache";
 
 interface CacheGroupProps {
   children: React.ReactNode;
@@ -10,18 +10,14 @@ interface CacheGroupProps {
 }
 
 interface CacheGroupRef {
-  /** 清除缓存
-   * @param key 可选的缓存key，如果不传则清除所有缓存
-   * @param config 配置项，可选的卸载根节点
-   */
   clearCache: (key?: string, config?: { unmount?: boolean }) => void;
-  /** 获取当前缓存的所有key */
   getCacheKeys: () => string[];
-  /** 获取缓存大小 */
-  getCacheSize: () => number;
 }
 
-export const CacheGroup = forwardRef<CacheGroupRef, CacheGroupProps>(function CacheGroup({ children, groupId, capacity = 10 }, ref) {
+export const CacheGroup = forwardRef<CacheGroupRef, CacheGroupProps>(function CacheGroup(
+  { children, groupId, capacity = 10 },
+  ref,
+) {
   const contextValue = useMemo(() => {
     const domCache = new LRUCache<string, HTMLElement>(capacity);
     const rootCache = new Map<string, Root>();
@@ -30,22 +26,6 @@ export const CacheGroup = forwardRef<CacheGroupRef, CacheGroupProps>(function Ca
       domCache,
       rootCache,
       groupId: groupId,
-      onDestroy: () => {
-        // 异步处理，防止：在 React 正在渲染时同步卸载根节点。
-        // React 无法在当前渲染完成之前完成根节点的卸载，
-        // 这可能会导致竞态条件
-        Promise.resolve().then(() => {
-          rootCache.forEach((root) => {
-            try {
-              root.unmount();
-            } catch (e) {
-              console.warn('Failed to unmount root:', e);
-            }
-          });
-          domCache.clear();
-          rootCache.clear();
-        });
-      }
     };
   }, [groupId, capacity]);
 
@@ -76,12 +56,15 @@ export const CacheGroup = forwardRef<CacheGroupRef, CacheGroupProps>(function Ca
       }
     },
     getCacheKeys: () => contextValue.domCache.keys(),
-    getCacheSize: () => contextValue.domCache.size
   }));
 
   useEffect(() => {
     return () => {
-      contextValue.onDestroy();
+      contextValue.rootCache.forEach((root) => {
+        root.unmount();
+      });
+      contextValue.domCache.clear();
+      contextValue.rootCache.clear();
     };
   }, []);
 

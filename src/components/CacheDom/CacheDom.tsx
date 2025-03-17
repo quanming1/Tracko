@@ -1,43 +1,35 @@
 /* eslint-disable react/no-unknown-property */
-import React, {
-  useLayoutEffect,
-  useRef,
-  useImperativeHandle,
-  forwardRef,
-  useContext,
-  useEffect,
-  Fragment,
-  ComponentType,
-} from "react";
-import { CacheContext } from "./context";
+import React, { useLayoutEffect, useRef, useContext, useEffect, ComponentType } from "react";
 import { createRoot } from "react-dom/client";
-import { RootMap } from "./prerender";
 import { useUpdate } from "ahooks";
+
+import { CacheContext } from "./context";
 import type { ISafeAny } from "../../types";
 
-interface CacheDomProps<T = Record<string, unknown>> {
-  cacheKey: string;
-  Component: ComponentType<T>;
-  disabled?: boolean;
-  deps?: T;
-  onCacheHit?: () => void;
-  onCacheMiss?: () => void;
+const PREFIX = "__cache-dom";
+const withPrefix = (key: string): string => `${PREFIX}-${key}`;
+const FlushCallbacks = new Map<string, (deps: ISafeAny) => void>();
 
-  containerClassName?: string;
-  containerStyle?: React.CSSProperties;
+interface CacheDomProps<T = Record<string, unknown>> {
+  cacheKey: string; // 缓存key
+  Component: ComponentType<T>; // 组件
+  disabled?: boolean; // 是否禁用缓存
+  deps?: T; // 依赖
+  onCacheHit?: () => void; // 缓存命中回调
+  onCacheMiss?: () => void; // 缓存未命中回调
+  containerClassName?: string; // 容器类名
+  containerStyle?: React.CSSProperties; // 容器样式
 }
 
-const FlushCallbacks = new Map<string, (deps: ISafeAny) => void>(); // 缓存依赖变化时的回调
-interface CacheDomRef {}
-const PREFIX = "__cache-dom";
-const withPrefix = (key: string) => `${PREFIX}-${key}`;
-
+/**
+ * 创建缓存容器
+ */
 const createContainer = (
   cacheKey: string,
   containerRef: React.RefObject<HTMLDivElement>,
   containerClassName?: string,
   containerStyle?: React.CSSProperties,
-) => {
+): React.ReactNode => {
   return (
     <div
       className={`${withPrefix(cacheKey)} ${containerClassName || ""}`}
@@ -48,19 +40,43 @@ const createContainer = (
   );
 };
 
-function CacheDomInner<T = Record<string, unknown>>(
-  {
-    cacheKey,
-    Component,
-    disabled = false,
-    deps = {} as T,
-    onCacheHit,
-    onCacheMiss,
-    containerClassName,
-    containerStyle,
-  }: CacheDomProps<T>,
-  ref: React.ForwardedRef<CacheDomRef>,
-) {
+function CacheDomWrapper<T = Record<string, unknown>>({
+  Component,
+  cacheKey,
+}: {
+  Component: ComponentType<T>;
+  cacheKey: string;
+}): React.ReactElement {
+  const update = useUpdate();
+  const depsRef = useRef<T>({} as T);
+
+  useEffect(() => {
+    FlushCallbacks.set(cacheKey, (deps: T) => {
+      depsRef.current = { ...deps };
+      update();
+    });
+
+    return () => {
+      FlushCallbacks.delete(cacheKey);
+    };
+  }, [cacheKey, update]);
+
+  return <Component {...depsRef.current} />;
+}
+
+/**
+ * CacheDom组件
+ */
+function CacheDom<T = Record<string, unknown>>({
+  cacheKey,
+  Component,
+  disabled = false,
+  deps = {} as T,
+  onCacheHit,
+  onCacheMiss,
+  containerClassName,
+  containerStyle,
+}: CacheDomProps<T>): React.ReactNode {
   const containerRef = useRef<HTMLDivElement>(null);
   const context = useContext(CacheContext);
   const { current } = useRef<React.ReactNode>(
@@ -70,34 +86,30 @@ function CacheDomInner<T = Record<string, unknown>>(
   if (!context) {
     throw new Error("CacheDom 必须在 CacheGroup 中使用");
   }
-  const handleCacheHit = () => {
+
+  const handleCacheHit = (): void => {
     onCacheHit?.();
   };
 
   const { domCache, rootCache } = context;
 
-  useImperativeHandle(ref, () => ({}));
-
-  // 处理DOM缓存的初始化和命中
   useLayoutEffect(() => {
     if (disabled || !containerRef.current) return;
 
-    if (!domCache.has(cacheKey) && !RootMap.get(cacheKey)) {
+    if (!domCache.has(cacheKey)) {
       domCache.set(cacheKey, containerRef.current);
       const root = createRoot(containerRef.current);
       rootCache.set(cacheKey, root);
       root.render(<CacheDomWrapper<T> cacheKey={cacheKey} Component={Component} />);
       onCacheMiss?.();
     } else {
-      // 获取缓存的DOM元素，优先使用组件内缓存
       const cachedElement = domCache.get(cacheKey);
       if (cachedElement && containerRef.current) {
         containerRef.current.appendChild(cachedElement);
       }
-
       handleCacheHit();
     }
-  }, [cacheKey, disabled, Component]);
+  }, [cacheKey, disabled, Component, domCache, rootCache, onCacheMiss]);
 
   useLayoutEffect(
     () => {
@@ -109,37 +121,5 @@ function CacheDomInner<T = Record<string, unknown>>(
   return disabled ? <Component {...deps} /> : current;
 }
 
-const CacheDom = forwardRef(CacheDomInner) as <T = Record<string, unknown>>(
-  props: CacheDomProps<T> & { ref?: React.ForwardedRef<CacheDomRef> },
-) => React.ReactElement;
-
 export { CacheDom };
-export type { CacheDomRef, CacheDomProps };
-
-function CacheDomWrapper<T = Record<string, unknown>>({
-  Component,
-  cacheKey,
-}: {
-  Component: ComponentType<T>;
-  cacheKey: string;
-}) {
-  const update = useUpdate();
-  const depsRef = useRef<T>({} as T);
-
-  useEffect(() => {
-    FlushCallbacks.set(cacheKey, (deps: T) => {
-      console.log("更新了", cacheKey);
-      depsRef.current = { ...deps };
-      update();
-    });
-    return () => {
-      FlushCallbacks.delete(cacheKey);
-    };
-  }, [cacheKey]);
-
-  return (
-    <Fragment>
-      <Component {...depsRef.current} />
-    </Fragment>
-  );
-}
+export type { CacheDomProps };
