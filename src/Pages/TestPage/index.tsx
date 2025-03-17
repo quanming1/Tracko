@@ -69,7 +69,7 @@ const TestPage: React.FC = () => {
           <CacheDom
             cacheKey={`tab1`}
             disabled={cacheDisabled}
-            deps={[count]}
+            props={[count]}
             onCacheHit={() => handleCacheHit("数据图表分析")}
             onCacheMiss={() => handleCacheMiss("数据图表分析")}
             containerClassName={styles["cache-container"]}
@@ -82,7 +82,7 @@ const TestPage: React.FC = () => {
           <CacheDom
             cacheKey={`tab2`}
             disabled={cacheDisabled}
-            deps={[count]}
+            props={[count]}
             onCacheHit={() => handleCacheHit("项目数据表格")}
             onCacheMiss={() => handleCacheMiss("项目数据表格")}
             containerClassName={styles["cache-container"]}
@@ -95,7 +95,7 @@ const TestPage: React.FC = () => {
           <CacheDom
             cacheKey={`tab3`}
             disabled={cacheDisabled}
-            deps={[count]}
+            props={[count]}
             onCacheHit={() => handleCacheHit("用户信息表单")}
             onCacheMiss={() => handleCacheMiss("用户信息表单")}
             containerClassName={styles["cache-container"]}

@@ -14,7 +14,7 @@ interface CacheDomProps<T = Record<string, unknown>> {
   cacheKey: string; // 缓存key
   Component: ComponentType<T>; // 组件
   disabled?: boolean; // 是否禁用缓存
-  deps?: T; // 依赖
+  props?: T; // 依赖
   onCacheHit?: () => void; // 缓存命中回调
   onCacheMiss?: () => void; // 缓存未命中回调
   containerClassName?: string; // 容器类名
@@ -71,7 +71,7 @@ function CacheDom<T = Record<string, unknown>>({
   cacheKey,
   Component,
   disabled = false,
-  deps = {} as T,
+  props = {} as T,
   onCacheHit,
   onCacheMiss,
   containerClassName,
@@ -109,12 +109,12 @@ function CacheDom<T = Record<string, unknown>>({
 
   useUpdateLayoutEffect(
     () => {
-      FlushCallbacks.get(cacheKey)?.(deps);
+      FlushCallbacks.get(cacheKey)?.(props);
     },
-    Object.values(deps || {}),
+    Object.values(props || {}),
   );
 
-  return disabled ? <Component {...deps} /> : current;
+  return disabled ? <Component {...props} /> : current;
 }
 
 export { CacheDom };
