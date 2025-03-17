@@ -7,27 +7,27 @@ import React, {
   useContext,
   useEffect,
   Fragment,
+  ComponentType,
 } from "react";
 import { CacheContext } from "./context";
 import { createRoot } from "react-dom/client";
 import { RootMap } from "./prerender";
 import { useUpdate } from "ahooks";
+import type { ISafeAny } from "../../types";
 
-interface CacheDomProps {
+interface CacheDomProps<T = Record<string, unknown>> {
   cacheKey: string;
-  children: any;
+  Component: ComponentType<T>;
   disabled?: boolean;
-  deps?: Record<string, any>;
-  /** 缓存命中时的回调 */
+  deps?: T;
   onCacheHit?: () => void;
-  /** 缓存未命中时的回调 */
   onCacheMiss?: () => void;
 
   containerClassName?: string;
   containerStyle?: React.CSSProperties;
 }
 
-const FlushCallbacks = new Map<string, (deps: Record<string, any>) => void>(); // 缓存依赖变化时的回调
+const FlushCallbacks = new Map<string, (deps: ISafeAny) => void>(); // 缓存依赖变化时的回调
 interface CacheDomRef {}
 const PREFIX = "__cache-dom";
 const withPrefix = (key: string) => `${PREFIX}-${key}`;
@@ -40,7 +40,7 @@ const createContainer = (
 ) => {
   return (
     <div
-      className={`${withPrefix(cacheKey)} ${containerClassName}`}
+      className={`${withPrefix(cacheKey)} ${containerClassName || ""}`}
       cache-dom-container="true"
       ref={containerRef}
       style={containerStyle}
@@ -48,19 +48,18 @@ const createContainer = (
   );
 };
 
-// @ts-ignore
-const CacheDom = forwardRef<CacheDomRef, CacheDomProps>(function CacheDom(
+function CacheDomInner<T = Record<string, unknown>>(
   {
     cacheKey,
-    children: Children,
+    Component,
     disabled = false,
-    deps = [],
+    deps = {} as T,
     onCacheHit,
     onCacheMiss,
     containerClassName,
     containerStyle,
-  },
-  ref,
+  }: CacheDomProps<T>,
+  ref: React.ForwardedRef<CacheDomRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const context = useContext(CacheContext);
@@ -87,33 +86,48 @@ const CacheDom = forwardRef<CacheDomRef, CacheDomProps>(function CacheDom(
       domCache.set(cacheKey, containerRef.current);
       const root = createRoot(containerRef.current);
       rootCache.set(cacheKey, root);
-      root.render(<Container cacheKey={cacheKey} Children={Children} />);
+      root.render(<CacheDomWrapper<T> cacheKey={cacheKey} Component={Component} />);
       onCacheMiss?.();
     } else {
       // 获取缓存的DOM元素，优先使用组件内缓存
       const cachedElement = domCache.get(cacheKey);
-      containerRef.current?.appendChild(cachedElement);
+      if (cachedElement && containerRef.current) {
+        containerRef.current.appendChild(cachedElement);
+      }
 
       handleCacheHit();
     }
-  }, [cacheKey, disabled]);
+  }, [cacheKey, disabled, Component]);
 
-  useLayoutEffect(() => {
-    FlushCallbacks.get(cacheKey)?.(deps);
-  }, Object.values(deps));
+  useLayoutEffect(
+    () => {
+      FlushCallbacks.get(cacheKey)?.(deps);
+    },
+    Object.values(deps || {}),
+  );
 
-  return disabled ? <Children {...deps} /> : current;
-});
+  return disabled ? <Component {...deps} /> : current;
+}
+
+const CacheDom = forwardRef(CacheDomInner) as <T = Record<string, unknown>>(
+  props: CacheDomProps<T> & { ref?: React.ForwardedRef<CacheDomRef> },
+) => React.ReactElement;
 
 export { CacheDom };
 export type { CacheDomRef, CacheDomProps };
 
-function Container({ Children, cacheKey }: { Children: any; cacheKey: string }) {
+function CacheDomWrapper<T = Record<string, unknown>>({
+  Component,
+  cacheKey,
+}: {
+  Component: ComponentType<T>;
+  cacheKey: string;
+}) {
   const update = useUpdate();
-  const depsRef = useRef<Record<string, any>>({});
+  const depsRef = useRef<T>({} as T);
 
   useEffect(() => {
-    FlushCallbacks.set(cacheKey, (deps: Record<string, any>) => {
+    FlushCallbacks.set(cacheKey, (deps: T) => {
       console.log("更新了", cacheKey);
       depsRef.current = { ...deps };
       update();
@@ -121,11 +135,11 @@ function Container({ Children, cacheKey }: { Children: any; cacheKey: string }) 
     return () => {
       FlushCallbacks.delete(cacheKey);
     };
-  }, []);
+  }, [cacheKey]);
 
   return (
     <Fragment>
-      <Children {...depsRef.current} />
+      <Component {...depsRef.current} />
     </Fragment>
   );
 }

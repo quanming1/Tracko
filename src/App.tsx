@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./Style/index.scss";
 import { CacheGroup } from "./components/CacheDom/CacheGroup";
 import { CacheDom } from "./components/CacheDom/CacheDom";
@@ -15,12 +15,12 @@ const App: React.FC = () => {
         {isshow && (
           <CacheDom
             deps={{
+              name: "test",
               num,
             }}
             cacheKey="test-dom"
-          >
-            {Comp}
-          </CacheDom>
+            Component={Comp}
+          />
         )}
         <Button onClick={() => setIsshow(() => !isshow)}>切换显示</Button>
         <Button onClick={() => setNum((prev) => prev + 1)}>num ++ button</Button>
@@ -29,24 +29,18 @@ const App: React.FC = () => {
   );
 };
 
-function Comp(props: { num: number }) {
-  const { num } = props;
+const Comp: React.FC<{ num: number; name: string }> = (props) => {
+  const { num, name } = props;
   const [count, setCount] = React.useState<number>(0);
-  console.log("num", props);
-
-  useEffect(() => {
-    console.log("加载了");
-  }, []);
-
-  console.log("变化了");
 
   return (
     <div>
       <div>当前计数: {count}</div>
       <div>num: {num}</div>
+      <div>name: {name}</div>
       <button onClick={() => setCount((prev) => prev + 1)}>点击增加</button>
     </div>
   );
-}
+};
 
 export default App;
