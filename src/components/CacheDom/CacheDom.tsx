@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 import React, { useLayoutEffect, useRef, useContext, useEffect, ComponentType } from "react";
 import { createRoot } from "react-dom/client";
-import { useUpdate } from "ahooks";
+import { useUpdate, useUpdateLayoutEffect } from "ahooks";
 
 import { CacheContext } from "./context";
 import type { ISafeAny } from "../../types";
@@ -87,10 +87,6 @@ function CacheDom<T = Record<string, unknown>>({
     throw new Error("CacheDom 必须在 CacheGroup 中使用");
   }
 
-  const handleCacheHit = (): void => {
-    onCacheHit?.();
-  };
-
   const { domCache, rootCache } = context;
 
   useLayoutEffect(() => {
@@ -107,11 +103,11 @@ function CacheDom<T = Record<string, unknown>>({
       if (cachedElement && containerRef.current) {
         containerRef.current.appendChild(cachedElement);
       }
-      handleCacheHit();
+      onCacheHit?.();
     }
-  }, [cacheKey, disabled, Component, domCache, rootCache, onCacheMiss]);
+  }, [cacheKey, disabled]);
 
-  useLayoutEffect(
+  useUpdateLayoutEffect(
     () => {
       FlushCallbacks.get(cacheKey)?.(deps);
     },
