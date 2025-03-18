@@ -8,7 +8,7 @@ import type { ISafeAny } from "../../types";
 
 const PREFIX = "__cache-dom";
 const withPrefix = (key: string): string => `${PREFIX}-${key}`;
-const FlushCallbacks = new Map<string, (deps: ISafeAny) => void>();
+export const _FlushCallbacks = new Map<string, (deps: ISafeAny) => void>();
 
 interface CacheDomProps<T = Record<string, unknown>> {
   cacheKey: string; // 缓存key
@@ -40,7 +40,7 @@ const createContainer = (
   );
 };
 
-function CacheDomWrapper<T = Record<string, unknown>>({
+export function CacheDomWrapper<T = Record<string, unknown>>({
   Component,
   cacheKey,
 }: {
@@ -51,13 +51,13 @@ function CacheDomWrapper<T = Record<string, unknown>>({
   const depsRef = useRef<T>({} as T);
 
   useEffect(() => {
-    FlushCallbacks.set(cacheKey, (deps: T) => {
+    _FlushCallbacks.set(cacheKey, (deps: T) => {
       depsRef.current = { ...deps };
       update();
     });
 
     return () => {
-      FlushCallbacks.delete(cacheKey);
+      _FlushCallbacks.delete(cacheKey);
     };
   }, [cacheKey, update]);
 
@@ -109,7 +109,7 @@ function CacheDom<T = Record<string, unknown>>({
 
   useUpdateLayoutEffect(
     () => {
-      FlushCallbacks.get(cacheKey)?.(props);
+      _FlushCallbacks.get(cacheKey)?.(props);
     },
     Object.values(props || {}),
   );

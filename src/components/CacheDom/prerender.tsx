@@ -1,8 +1,8 @@
 /* eslint-disable no-unsafe-finally */
 /* eslint-disable no-empty */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react';
-import { createRoot, Root } from 'react-dom/client';
+import React from "react";
+import { createRoot, Root } from "react-dom/client";
 
 const originalRemoveChild = Node.prototype.removeChild;
 
@@ -29,14 +29,14 @@ export const RootMap = new Map<string, { container: HTMLElement; rootInstance: R
 
 export namespace CacheDomHelper {
   const genRoot = () => {
-    const container = document.createElement('div');
-    container.setAttribute(`data-manmade-container`, 'true');
+    const container = document.createElement("div");
+    container.setAttribute(`data-manmade-container`, "true");
     container.setAttribute(`data-index`, `${id++}`);
     const rootInstance = createRoot(container);
 
     return {
       container,
-      rootInstance
+      rootInstance,
     };
   };
 
@@ -47,7 +47,7 @@ export namespace CacheDomHelper {
 
     return {
       rootInstance,
-      container
+      container,
     };
   }
 

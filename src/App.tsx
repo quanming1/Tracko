@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import "./Style/index.scss";
 import { CacheGroup, CacheGroupRef } from "./components/CacheDom/CacheGroup";
 import { CacheDom } from "./components/CacheDom/CacheDom";
+import { cache } from "./components/CacheDom/cache"; // 导入 cache 函数
 import {
   Button,
   Card,
@@ -36,6 +37,8 @@ import {
   FormOutlined,
   SaveOutlined,
   ClearOutlined,
+  CodeOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 
 const { Paragraph, Text } = Typography;
@@ -61,6 +64,12 @@ const App: React.FC = () => {
   const [isShowForm, setIsShowForm] = useState<boolean>(false);
   const [formReset, setFormReset] = useState<boolean>(false);
 
+  // 新增：直接缓存演示的状态
+  const [showDirectCache, setShowDirectCache] = useState<boolean>(false);
+  const [directCacheCount, setDirectCacheCount] = useState<number>(0);
+  const [directCacheKey, setDirectCacheKey] = useState<string>("direct-cache-demo");
+  const [isUpdateAfterUnmount, setIsUpdateAfterUnmount] = useState<boolean>(false);
+
   // 清除指定缓存
   const clearSpecificCache = () => {
     cacheGroupRef.current?.clearCache("test-dom-1");
@@ -83,6 +92,80 @@ const App: React.FC = () => {
     }
   };
 
+  // 创建一个使用 cache 函数包装的组件
+  // 注意：我们需要在组件内部定义，以便能够访问最新的 directCacheKey
+  const DirectCacheComponent = cache(
+    ({ title, count }: { title: string; count: number }) => {
+      const [internalCount, setInternalCount] = useState<number>(0);
+      const mountTime = useRef<string>(new Date().toLocaleTimeString()).current;
+
+      return (
+        <Card
+          title={
+            <Space>
+              <Badge status="processing" />
+              <span>{title}</span>
+              <Tag color="magenta">直接缓存</Tag>
+            </Space>
+          }
+          style={{ width: "100%" }}
+        >
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Alert
+              message="这个组件使用 cache 函数直接缓存，而不是通过 CacheDom 组件"
+              type="info"
+              showIcon
+            />
+
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Card size="small" title="组件信息">
+                  <p>
+                    <Text type="secondary">挂载时间:</Text> <Tag color="blue">{mountTime}</Tag>
+                  </p>
+                  <p>
+                    <Text type="secondary">外部计数:</Text> <Tag color="green">{count}</Tag>
+                  </p>
+                  <p>
+                    <Text type="secondary">内部计数:</Text>{" "}
+                    <Tag color="orange">{internalCount}</Tag>
+                  </p>
+                  <p>
+                    <Text type="secondary">缓存键:</Text> <Tag color="purple">{directCacheKey}</Tag>
+                  </p>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card size="small" title="操作">
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => setInternalCount((prev) => prev + 1)}
+                      block
+                    >
+                      增加内部计数
+                    </Button>
+                    <Button
+                      icon={<SyncOutlined />}
+                      onClick={() => {
+                        message.info("组件内部状态已保存在缓存中");
+                      }}
+                      block
+                    >
+                      检查缓存状态
+                    </Button>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+          </Space>
+        </Card>
+      );
+    },
+    { cacheKey: directCacheKey },
+  );
+
   return (
     <div className="app-container" style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
       <Typography.Title level={1} style={{ textAlign: "center", marginBottom: 24 }}>
@@ -97,6 +180,114 @@ const App: React.FC = () => {
 
       <CacheGroup groupId="demo-group" capacity={5} ref={cacheGroupRef}>
         <Space direction="vertical" style={{ width: "100%" }} size="large">
+          <Card
+            title={
+              <Space>
+                <Badge status="processing" />
+                <span>直接缓存函数演示</span>
+              </Space>
+            }
+            bordered
+            extra={<Tag color="volcano">高级功能</Tag>}
+          >
+            <Space direction="vertical" style={{ width: "100%" }} size="middle">
+              <Alert
+                message="这个示例展示了如何直接使用 cache 函数来缓存组件，而不是通过 CacheDom 组件"
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+
+              <Row gutter={16} align="middle">
+                <Col>
+                  <Tooltip title={showDirectCache ? "点击隐藏组件" : "点击显示组件"}>
+                    <Button
+                      type="primary"
+                      icon={showDirectCache ? <EyeInvisibleOutlined /> : <CodeOutlined />}
+                      onClick={() => setShowDirectCache(!showDirectCache)}
+                    >
+                      {showDirectCache ? "隐藏直接缓存组件" : "显示直接缓存组件"}
+                    </Button>
+                  </Tooltip>
+                </Col>
+                <Col>
+                  <Tooltip title="更新传入组件的计数参数">
+                    <Button
+                      icon={<PlusOutlined />}
+                      onClick={() => setDirectCacheCount((prev) => prev + 1)}
+                    >
+                      更新计数: {directCacheCount}
+                    </Button>
+                  </Tooltip>
+                </Col>
+                <Col>
+                  <Tooltip title="更改缓存键，将创建新的缓存实例">
+                    <Button
+                      icon={<ReloadOutlined />}
+                      onClick={() => {
+                        const newKey = `direct-cache-demo-${Date.now()}`;
+                        setDirectCacheKey(newKey);
+                        message.success(`已更改缓存键为: ${newKey}`);
+                      }}
+                    >
+                      更改缓存键
+                    </Button>
+                  </Tooltip>
+                </Col>
+                <Col>
+                  <Space align="center">
+                    <Text>卸载后更新:</Text>
+                    <Tooltip title={isUpdateAfterUnmount ? "卸载后清除缓存" : "卸载后保留缓存"}>
+                      <Switch
+                        checked={isUpdateAfterUnmount}
+                        onChange={setIsUpdateAfterUnmount}
+                        checkedChildren="开启"
+                        unCheckedChildren="关闭"
+                      />
+                    </Tooltip>
+                  </Space>
+                </Col>
+              </Row>
+
+              {showDirectCache && (
+                <div style={{ marginTop: 16 }}>
+                  <DirectCacheComponent
+                    title="直接缓存组件示例"
+                    count={directCacheCount}
+                    containerStyle={{
+                      border: "1px dashed #722ed1",
+                      padding: 16,
+                      borderRadius: 8,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                      background: "#f9f0ff",
+                    }}
+                    onCacheHit={() => {
+                      message.success("直接缓存组件命中缓存");
+                    }}
+                    onCacheMiss={() => {
+                      message.warning("直接缓存组件未命中缓存");
+                    }}
+                  />
+                </div>
+              )}
+
+              <Alert
+                message="说明：直接缓存函数与 CacheDom 组件的区别"
+                description={
+                  <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                    <li>直接缓存函数可以更灵活地控制缓存行为</li>
+                    <li>可以通过 isUpdateAfterUnmount 参数控制组件卸载后是否清除缓存</li>
+                    <li>支持与 CacheDom 相同的回调和样式属性</li>
+                    <li>更改缓存键会创建新的缓存实例，而不会影响旧的缓存</li>
+                  </ul>
+                }
+                type="info"
+                showIcon
+                style={{ marginTop: 16 }}
+              />
+            </Space>
+          </Card>
+
           <Card
             title={
               <Space>
