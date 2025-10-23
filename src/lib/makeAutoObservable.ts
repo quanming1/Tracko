@@ -1,0 +1,176 @@
+type Listener = () => void;
+
+type UnsubscribeFn = () => void;
+
+interface ObservableValue {
+  subscribe: (listener: Listener) => UnsubscribeFn;
+}
+
+const computedStack: ComputedValue[] = [];
+
+const getCurrentComputed = (): ComputedValue | undefined => {
+  return computedStack[computedStack.length - 1];
+};
+
+let id = 1;
+
+class ComputedValue {
+  private name: string;
+  private cachedValue: unknown;
+  private dirty: boolean = true;
+  private deps: Set<Set<ComputedValue>> = new Set();
+  private dependents: Set<ComputedValue> = new Set();
+
+  constructor(
+    private getter: () => unknown,
+    name: string,
+  ) {
+    this.name = name + "_" + id++;
+  }
+
+  get value(): unknown {
+    const activeComputed = getCurrentComputed();
+    if (activeComputed && activeComputed !== this) {
+      activeComputed.addDep(this.dependents);
+    }
+
+    if (this.dirty) {
+      this.cleanupDeps();
+      computedStack.push(this);
+      try {
+        this.cachedValue = this.getter();
+      } finally {
+        computedStack.pop();
+      }
+      this.dirty = false;
+    }
+    return this.cachedValue;
+  }
+
+  addDep = (depSet: Set<ComputedValue>): void => {
+    this.deps.add(depSet);
+    depSet.add(this);
+  };
+
+  notify = (): void => {
+    this.dirty = true;
+    // Invalidate any computeds that depend on this computed
+    this.dependents.forEach((dependent) => dependent.notify());
+  };
+
+  private cleanupDeps = (): void => {
+    this.deps.forEach((depSet) => {
+      depSet.delete(this);
+    });
+    this.deps.clear();
+  };
+}
+
+class ObservableManager {
+  private listeners: Set<Listener> = new Set();
+
+  subscribe = (listener: Listener): UnsubscribeFn => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+
+  notify = (): void => {
+    this.listeners.forEach((listener) => listener());
+  };
+}
+
+export function makeAutoObservable<T>(target: T): T & ObservableValue {
+  const manager = new ObservableManager();
+
+  const makeReactive = <R extends object>(obj: R): R => {
+    const keys = Object.keys(obj) as Array<keyof R>;
+    const proto = Object.getPrototypeOf(obj);
+    const protoKeys = proto ? Object.getOwnPropertyNames(proto) : [];
+
+    const processKey = (key: string | keyof R): void => {
+      if (key === "constructor") {
+        return;
+      }
+
+      let descriptor = Object.getOwnPropertyDescriptor(obj, key);
+      if (!descriptor) {
+        descriptor = Object.getOwnPropertyDescriptor(proto, key);
+      }
+
+      if (!descriptor || !descriptor.configurable) {
+        return;
+      }
+
+      if (descriptor.get) {
+        const originalGetter = descriptor.get;
+        const computed = new ComputedValue(originalGetter.bind(obj), String(key));
+
+        Object.defineProperty(obj, key, {
+          enumerable: descriptor.enumerable,
+          configurable: true,
+          get(): unknown {
+            return computed.value;
+          },
+        });
+        return;
+      }
+
+      const value = obj[key as keyof R];
+
+      if (typeof value === "function") {
+        return;
+      }
+
+      const computedDeps: Set<ComputedValue> = new Set();
+
+      let internalValue: unknown =
+        value !== null && typeof value === "object" ? makeReactive(value as object) : value;
+
+      Object.defineProperty(obj, key, {
+        enumerable: true,
+        configurable: true,
+        get(): unknown {
+          console.log(
+            `${String(key)} 被获取， 当前的数组为}`,
+            JSON.parse(JSON.stringify(computedStack)),
+          );
+          const activeComputed = getCurrentComputed();
+          if (activeComputed) {
+            console.log(123);
+
+            activeComputed.addDep(computedDeps);
+          }
+          return internalValue;
+        },
+        set(newValue: unknown): void {
+          if (internalValue !== newValue) {
+            internalValue =
+              newValue !== null && typeof newValue === "object"
+                ? makeReactive(newValue as object)
+                : newValue;
+            computedDeps.forEach((computed) => computed.notify());
+            manager.notify();
+          }
+        },
+      });
+    };
+
+    keys.forEach(processKey);
+    protoKeys.forEach(processKey);
+
+    return obj;
+  };
+
+  const result = makeReactive(target as object);
+
+  Object.defineProperty(result, "subscribe", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: manager.subscribe,
+  });
+
+  return result as T & ObservableValue;
+}
