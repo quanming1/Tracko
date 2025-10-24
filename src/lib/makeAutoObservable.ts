@@ -2,7 +2,7 @@ type Listener = () => void;
 
 type UnsubscribeFn = () => void;
 
-interface ObservableValue {
+export interface ObservableValue {
   subscribe: (listener: Listener) => UnsubscribeFn;
 }
 
@@ -132,14 +132,8 @@ export function makeAutoObservable<T>(target: T): T & ObservableValue {
         enumerable: true,
         configurable: true,
         get(): unknown {
-          console.log(
-            `${String(key)} 被获取， 当前的数组为}`,
-            JSON.parse(JSON.stringify(computedStack)),
-          );
           const activeComputed = getCurrentComputed();
           if (activeComputed) {
-            console.log(123);
-
             activeComputed.addDep(computedDeps);
           }
           return internalValue;

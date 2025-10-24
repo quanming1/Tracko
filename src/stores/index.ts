@@ -1,13 +1,11 @@
 import { CounterStore } from "./counterStore";
 import { UserStore } from "./userStore";
-import { makeAutoObservable, createUseStores } from "../lib";
+import { createStores } from "../lib";
 
-export const counterStore = makeAutoObservable(new CounterStore());
-export const userStore = makeAutoObservable(new UserStore());
+const { stores, useStores } = createStores({
+  counterStore: CounterStore,
+  userStore: UserStore,
+});
 
-export const stores = {
-  counterStore,
-  userStore,
-} as const;
-
-export const useStores = createUseStores(stores);
+export { stores, useStores };
+export const { counterStore, userStore } = stores;
