@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef } from "react";
 
 type StoreWithSubscribe = {
-  subscribe: (listener: () => void) => () => void;
+  subscribe: (listener: () => void, keys?: string[]) => () => void;
   [key: string]: any;
 };
 
@@ -45,16 +45,34 @@ export function createUseStores<T extends Record<string, StoreWithSubscribe>>(st
     }
 
     useEffect(() => {
-      const unsubscribers = Object.keys(stores).map((storeName) => {
-        return stores[storeName].subscribe(() => {
-          forceUpdate();
-        });
+      const storeKeysMap = new Map<string, string[]>(); // key: storeName, value: 被使用过的字段名列表
+
+      accessedKeysRef.current.forEach((fullKey) => {
+        const [storeName, propertyName] = fullKey.split(".");
+        if (storeName && propertyName) {
+          if (!storeKeysMap.has(storeName)) {
+            storeKeysMap.set(storeName, []);
+          }
+          storeKeysMap.get(storeName)!.push(propertyName);
+        }
+      });
+
+      const unsubscribers: (() => void)[] = [];
+
+      storeKeysMap.forEach((keys, storeName) => {
+        const store = stores[storeName];
+        if (store) {
+          const unsubscribe = store.subscribe(() => {
+            forceUpdate();
+          }, keys);
+          unsubscribers.push(unsubscribe);
+        }
       });
 
       return () => {
         unsubscribers.forEach((unsubscribe) => unsubscribe());
       };
-    }, []);
+    });
 
     accessedKeysRef.current.clear();
 

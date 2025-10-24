@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Demo1 } from "./Demo1";
 import { Demo2 } from "./Demo2";
 import { Demo3 } from "./Demo3";
+import { Demo4 } from "./Demo4";
 
-type DemoType = "demo1" | "demo2" | "demo3";
+type DemoType = "demo1" | "demo2" | "demo3" | "demo4";
 
 const Home: React.FC = () => {
   const getInitialDemo = (): DemoType => {
     const params = new URLSearchParams(window.location.search);
     const demo = params.get("demo") as DemoType;
-    return demo && ["demo1", "demo2", "demo3"].includes(demo) ? demo : "demo1";
+    return demo && ["demo1", "demo2", "demo3", "demo4"].includes(demo) ? demo : "demo1";
   };
 
   const [currentDemo, setCurrentDemo] = useState<DemoType>(getInitialDemo);
@@ -29,6 +30,8 @@ const Home: React.FC = () => {
         return <Demo2 />;
       case "demo3":
         return <Demo3 />;
+      case "demo4":
+        return <Demo4 />;
       default:
         return <Demo1 />;
     }
@@ -65,6 +68,15 @@ const Home: React.FC = () => {
             }}
           >
             Demo3: 组件嵌套
+          </button>
+          <button
+            onClick={() => setCurrentDemo("demo4")}
+            style={{
+              ...navButtonStyle,
+              ...(currentDemo === "demo4" ? activeNavButtonStyle : {}),
+            }}
+          >
+            Demo4: 重渲染问题 🐛
           </button>
         </div>
       </nav>

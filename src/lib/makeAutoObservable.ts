@@ -3,7 +3,7 @@ type Listener = () => void;
 type UnsubscribeFn = () => void;
 
 export interface ObservableValue {
-  subscribe: (listener: Listener) => UnsubscribeFn;
+  subscribe: (listener: Listener, keys?: string[]) => UnsubscribeFn;
 }
 
 const computedStack: ComputedValue[] = [];
@@ -67,17 +67,31 @@ class ComputedValue {
 }
 
 class ObservableManager {
-  private listeners: Set<Listener> = new Set();
+  private listenerKeysMap: Map<Listener, Set<string>> = new Map();
 
-  subscribe = (listener: Listener): UnsubscribeFn => {
-    this.listeners.add(listener);
+  subscribe = (listener: Listener, keys?: string[]): UnsubscribeFn => {
+    if (!keys || keys.length === 0) {
+      return () => {};
+    }
+    this.listenerKeysMap.set(listener, new Set(keys));
     return () => {
-      this.listeners.delete(listener);
+      this.listenerKeysMap.delete(listener);
     };
   };
 
-  notify = (): void => {
-    this.listeners.forEach((listener) => listener());
+  notify = (changedKey?: string): void => {
+    if (!changedKey) {
+      this.listenerKeysMap.forEach((subscribedKeys, listener) => {
+        listener();
+      });
+      return;
+    }
+
+    this.listenerKeysMap.forEach((subscribedKeys, listener) => {
+      if (subscribedKeys && subscribedKeys.has(changedKey)) {
+        listener();
+      }
+    });
   };
 }
 
@@ -145,7 +159,7 @@ export function makeAutoObservable<T>(target: T): T & ObservableValue {
                 ? makeReactive(newValue as object)
                 : newValue;
             computedDeps.forEach((computed) => computed.notify());
-            manager.notify();
+            manager.notify(String(key));
           }
         },
       });
