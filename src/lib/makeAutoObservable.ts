@@ -12,23 +12,19 @@ const getCurrentComputed = (): ComputedValue | undefined => {
   return computedStack[computedStack.length - 1];
 };
 
-let id = 1;
-
 class ComputedValue {
-  private name: string;
   private cachedValue: unknown;
   private dirty: boolean = true;
   private deps: Set<Set<ComputedValue>> = new Set();
   private dependents: Set<ComputedValue> = new Set();
 
-  constructor(
-    private getter: () => unknown,
-    name: string,
-  ) {
-    this.name = name + "_" + id++;
-  }
+  constructor(private getter: () => unknown) {}
 
   get value(): unknown {
+    if (computedStack.includes(this)) {
+      console.error("可能出现Getter递归调用");
+    }
+
     const activeComputed = getCurrentComputed();
     if (activeComputed && activeComputed !== this) {
       activeComputed.addDep(this.dependents);
@@ -54,7 +50,6 @@ class ComputedValue {
 
   notify = (): void => {
     this.dirty = true;
-    // Invalidate any computeds that depend on this computed
     this.dependents.forEach((dependent) => dependent.notify());
   };
 
@@ -107,19 +102,17 @@ export function makeAutoObservable<T>(target: T): T & ObservableValue {
       if (key === "constructor") {
         return;
       }
-
       let descriptor = Object.getOwnPropertyDescriptor(obj, key);
       if (!descriptor) {
         descriptor = Object.getOwnPropertyDescriptor(proto, key);
       }
-
       if (!descriptor || !descriptor.configurable) {
         return;
       }
 
       if (descriptor.get) {
         const originalGetter = descriptor.get;
-        const computed = new ComputedValue(originalGetter.bind(obj), String(key));
+        const computed = new ComputedValue(originalGetter.bind(obj));
 
         Object.defineProperty(obj, key, {
           enumerable: descriptor.enumerable,
@@ -130,15 +123,11 @@ export function makeAutoObservable<T>(target: T): T & ObservableValue {
         });
         return;
       }
-
       const value = obj[key as keyof R];
-
       if (typeof value === "function") {
         return;
       }
-
       const computedDeps: Set<ComputedValue> = new Set();
-
       let internalValue: unknown =
         value !== null && typeof value === "object" ? makeReactive(value as object) : value;
 

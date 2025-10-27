@@ -5,8 +5,15 @@ type StoreWithSubscribe = {
   [key: string]: any;
 };
 
-export function createUseStores<T extends Record<string, StoreWithSubscribe>>(stores: T) {
+export function createUseStores<T extends Record<string, StoreWithSubscribe>>(
+  stores: T,
+  config: {
+    clearAccessedKeysBeforeRender?: boolean;
+  } = {},
+) {
   return function useStores(): T {
+    const { clearAccessedKeysBeforeRender = true } = config;
+
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
     const accessedKeysRef = useRef<Set<string>>(new Set());
     const proxyRef = useRef<T | null>(null);
@@ -74,7 +81,9 @@ export function createUseStores<T extends Record<string, StoreWithSubscribe>>(st
       };
     });
 
-    accessedKeysRef.current.clear();
+    if (clearAccessedKeysBeforeRender) {
+      accessedKeysRef.current.clear();
+    }
 
     return proxyRef.current;
   };

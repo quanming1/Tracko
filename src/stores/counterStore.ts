@@ -1,6 +1,11 @@
 export class CounterStore {
   count = 1;
   history: number[] = [];
+  private rawMessage = [];
+
+  get message() {
+    return this.rawMessage;
+  }
 
   get double() {
     console.log("计算 double");
