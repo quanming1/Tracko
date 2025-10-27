@@ -17,8 +17,19 @@ class ComputedValue {
   private dirty: boolean = true;
   private deps: Set<Set<ComputedValue>> = new Set();
   private dependents: Set<ComputedValue> = new Set();
+  private observableManager: ObservableManager;
+  private fieldName: string;
+  private getter: () => unknown;
 
-  constructor(private getter: () => unknown) {}
+  constructor(options: {
+    fieldName: string;
+    getter: () => unknown;
+    observableManager: ObservableManager;
+  }) {
+    this.fieldName = options.fieldName;
+    this.getter = options.getter;
+    this.observableManager = options.observableManager;
+  }
 
   get value(): unknown {
     if (computedStack.includes(this)) {
@@ -49,7 +60,10 @@ class ComputedValue {
   };
 
   notify = (): void => {
-    this.dirty = true;
+    if (!this.dirty) {
+      this.dirty = true;
+      this.observableManager.notify(this.fieldName);
+    }
     this.dependents.forEach((dependent) => dependent.notify());
   };
 
@@ -110,15 +124,25 @@ export function makeAutoObservable<T>(target: T): T & ObservableValue {
         return;
       }
 
-      if (descriptor.get) {
+      const isGetter = descriptor.get !== undefined;
+      if (isGetter) {
         const originalGetter = descriptor.get;
-        const computed = new ComputedValue(originalGetter.bind(obj));
+        const computed = new ComputedValue({
+          fieldName: String(key),
+          getter: originalGetter.bind(obj),
+          observableManager: manager,
+        });
 
         Object.defineProperty(obj, key, {
           enumerable: descriptor.enumerable,
           configurable: true,
           get(): unknown {
             return computed.value;
+          },
+          set(newValue: unknown): void {
+            console.warn(
+              `[Store] 警告: 尝试给 computed 属性 "${String(key)}" 赋值。Computed 属性是只读的，该操作将被忽略。`,
+            );
           },
         });
         return;
