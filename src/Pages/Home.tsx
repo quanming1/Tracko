@@ -70,7 +70,7 @@ const Home: React.FC = () => {
       name: "可行性测试",
       demos: [
         { id: "demo1", name: "基础操作" },
-        { id: "demo3", name: "组件嵌套" },
+        { id: "demo3", name: "Getter组件嵌套" },
         { id: "demo4", name: "渲染颗粒度测试" },
       ],
     },

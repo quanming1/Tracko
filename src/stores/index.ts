@@ -7,5 +7,9 @@ const { stores, useStores } = createStores({
   userStore: UserStore,
 });
 
+stores.counterStore.subscribe(() => {
+  console.log("counterStore.octuple 变化", stores.counterStore.octuple);
+}, ["octuple"]);
+
 export { stores, useStores };
 export const { counterStore, userStore } = stores;

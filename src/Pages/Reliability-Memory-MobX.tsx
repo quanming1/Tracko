@@ -45,6 +45,7 @@ const MemoryTestComponent: React.FC = observer(() => {
         users: store.users?.length || 0,
         products: store.products?.length || 0,
       }}
+      store={store}
     />
   );
 });

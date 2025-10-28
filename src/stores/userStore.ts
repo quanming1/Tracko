@@ -9,6 +9,8 @@ export class UserStore {
     avatar: "https://avatar.example.com/default.png",
     bio: "这是我的个人简介",
     level: 1,
+    email: "user@example.com",
+    phone: "13800138000",
     badges: {
       // 对象套对象
       achievement: "新手",

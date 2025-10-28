@@ -14,7 +14,7 @@ export function createUseStores<T extends Record<string, StoreWithSubscribe>>(
   return function useStores(): T {
     const { clearAccessedKeysBeforeRender = true } = config;
 
-    const [, forceUpdate] = useReducer((x) => x + 1, 0);
+    const [, forceUpdate] = useReducer(() => ({}), null);
     const accessedKeysRef = useRef<Set<string>>(new Set());
     const proxyRef = useRef<T | null>(null);
 
@@ -22,7 +22,13 @@ export function createUseStores<T extends Record<string, StoreWithSubscribe>>(
       const createStoreProxy = (storeName: string, store: any): any => {
         return new Proxy(store, {
           get(target, property: string | symbol) {
-            if (typeof property === "string" && property !== "subscribe") {
+            // subscribe 方法直接返回原始值，不进行追踪和bind操作
+            // 因为它被定义为不可配置属性，Proxy必须返回实际值
+            if (property === "subscribe") {
+              return Reflect.get(target, property);
+            }
+
+            if (typeof property === "string") {
               accessedKeysRef.current.add(`${storeName}.${property}`);
             }
 

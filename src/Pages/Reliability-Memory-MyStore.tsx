@@ -40,6 +40,7 @@ const MemoryTestComponent: React.FC = () => {
         users: store.users?.length || 0,
         products: store.products?.length || 0,
       }}
+      store={store}
     />
   );
 };
