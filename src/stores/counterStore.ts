@@ -1,7 +1,35 @@
+interface SubItem {
+  label: string;
+  data: number[];
+}
+
+interface Item {
+  id: number;
+  name: string;
+  subItems: SubItem[];
+}
+
 export class CounterStore {
   count = 1;
   history: number[] = [];
   private rawMessage = [];
+
+  // 深度嵌套: 数组→对象→数组→对象→数组
+  items: Item[] = [
+    {
+      id: 1,
+      name: "group1",
+      subItems: [
+        { label: "sub1", data: [1, 2, 3] },
+        { label: "sub2", data: [4, 5] },
+      ],
+    },
+    {
+      id: 2,
+      name: "group2",
+      subItems: [{ label: "sub3", data: [6, 7, 8, 9] }],
+    },
+  ];
 
   get message() {
     return this.rawMessage;

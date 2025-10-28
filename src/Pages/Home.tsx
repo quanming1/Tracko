@@ -1,127 +1,165 @@
 import React, { useState, useEffect } from "react";
 import { Demo1 } from "./Demo1";
-import { Demo2 } from "./Demo2";
 import { Demo3 } from "./Demo3";
 import { Demo4 } from "./Demo4";
-import { Demo5 } from "./Demo5";
+import { DemoReliabilityMemory } from "./Demo-Reliability-Memory";
+import { ReliabilityMemoryMobX } from "./Reliability-Memory-MobX";
+import { ReliabilityMemoryMyStore } from "./Reliability-Memory-MyStore";
 
-type DemoType = "demo1" | "demo2" | "demo3" | "demo4" | "demo5";
+type DemoType = "demo1" | "demo3" | "demo4" | "reliability-memory";
 
 const Home: React.FC = () => {
   const getInitialDemo = (): DemoType => {
     const params = new URLSearchParams(window.location.search);
+    const testType = params.get("test");
+
+    // 特殊的测试窗口
+    if (testType === "mobx-memory" || testType === "mystore-memory") {
+      return testType as any;
+    }
+
     const demo = params.get("demo") as DemoType;
-    return demo && ["demo1", "demo2", "demo3", "demo4", "demo5"].includes(demo) ? demo : "demo1";
+    return demo && ["demo1", "demo3", "demo4", "reliability-memory"].includes(demo)
+      ? demo
+      : "demo1";
   };
 
   const [currentDemo, setCurrentDemo] = useState<DemoType>(getInitialDemo);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const testType = params.get("test");
+
+    // 如果是特殊的测试窗口，不修改URL
+    if (testType === "mobx-memory" || testType === "mystore-memory") {
+      return;
+    }
+
     params.set("demo", currentDemo);
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.pushState({}, "", newUrl);
   }, [currentDemo]);
 
   const renderDemo = () => {
+    const params = new URLSearchParams(window.location.search);
+    const testType = params.get("test");
+
+    if (testType === "mobx-memory") {
+      return <ReliabilityMemoryMobX />;
+    }
+    if (testType === "mystore-memory") {
+      return <ReliabilityMemoryMyStore />;
+    }
+
     switch (currentDemo) {
       case "demo1":
         return <Demo1 />;
-      case "demo2":
-        return <Demo2 />;
       case "demo3":
         return <Demo3 />;
       case "demo4":
         return <Demo4 />;
-      case "demo5":
-        return <Demo5 />;
+      case "reliability-memory":
+        return <DemoReliabilityMemory />;
       default:
         return <Demo1 />;
     }
   };
 
-  return (
-    <div style={{ fontFamily: "Arial", minHeight: "100vh" }}>
-      <nav style={navStyle}>
-        <h1 style={{ margin: 0, fontSize: "24px" }}>响应式系统测试</h1>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            onClick={() => setCurrentDemo("demo1")}
-            style={{
-              ...navButtonStyle,
-              ...(currentDemo === "demo1" ? activeNavButtonStyle : {}),
-            }}
-          >
-            Demo1: 简单响应式
-          </button>
-          <button
-            onClick={() => setCurrentDemo("demo2")}
-            style={{
-              ...navButtonStyle,
-              ...(currentDemo === "demo2" ? activeNavButtonStyle : {}),
-            }}
-          >
-            Demo2: Computed 嵌套
-          </button>
-          <button
-            onClick={() => setCurrentDemo("demo3")}
-            style={{
-              ...navButtonStyle,
-              ...(currentDemo === "demo3" ? activeNavButtonStyle : {}),
-            }}
-          >
-            Demo3: 组件嵌套
-          </button>
-          <button
-            onClick={() => setCurrentDemo("demo4")}
-            style={{
-              ...navButtonStyle,
-              ...(currentDemo === "demo4" ? activeNavButtonStyle : {}),
-            }}
-          >
-            Demo4: 重渲染问题 🐛
-          </button>
-          <button
-            onClick={() => setCurrentDemo("demo5")}
-            style={{
-              ...navButtonStyle,
-              ...(currentDemo === "demo5" ? activeNavButtonStyle : {}),
-            }}
-          >
-            Demo5: 死循环测试 ⚠️
-          </button>
-        </div>
-      </nav>
+  const categories = [
+    {
+      name: "可行性测试",
+      demos: [
+        { id: "demo1", name: "基础操作" },
+        { id: "demo3", name: "组件嵌套" },
+        { id: "demo4", name: "渲染颗粒度测试" },
+      ],
+    },
+    {
+      name: "可靠性测试",
+      demos: [{ id: "reliability-memory", name: "内存占用对比" }],
+    },
+  ];
 
-      <main style={{ padding: "0" }}>{renderDemo()}</main>
+  // 处理特殊的测试窗口，不显示侧边栏
+  const params = new URLSearchParams(window.location.search);
+  const testType = params.get("test");
+  if (testType === "mobx-memory" || testType === "mystore-memory") {
+    return <div style={{ ...containerStyle, display: "block" }}>{renderDemo()}</div>;
+  }
+
+  return (
+    <div style={containerStyle}>
+      <aside style={sidebarStyle}>
+        <div style={titleStyle}>响应式系统测试</div>
+        {categories.map((category) => (
+          <div key={category.name}>
+            <div style={categoryStyle}>{category.name}</div>
+            {category.demos.map((demo, index) => (
+              <div
+                key={demo.id}
+                onClick={() => setCurrentDemo(demo.id as DemoType)}
+                style={{
+                  ...itemStyle,
+                  ...(currentDemo === demo.id ? activeItemStyle : {}),
+                }}
+              >
+                {index + 1}.{demo.name}
+              </div>
+            ))}
+          </div>
+        ))}
+      </aside>
+
+      <main style={mainStyle}>{renderDemo()}</main>
     </div>
   );
 };
 
-const navStyle: React.CSSProperties = {
-  background: "#001529",
-  color: "white",
-  padding: "16px 24px",
+const containerStyle: React.CSSProperties = {
+  fontFamily: "monospace",
+  minHeight: "100vh",
+  background: "#fff",
   display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
 };
 
-const navButtonStyle: React.CSSProperties = {
-  padding: "8px 16px",
-  background: "transparent",
-  color: "white",
-  border: "1px solid rgba(255,255,255,0.3)",
-  borderRadius: "4px",
+const sidebarStyle: React.CSSProperties = {
+  width: "140px",
+  borderRight: "1px solid #ddd",
+  padding: "8px 0",
+  flexShrink: 0,
+};
+
+const titleStyle: React.CSSProperties = {
+  fontSize: "11px",
+  fontWeight: "600",
+  padding: "4px 8px",
+  borderBottom: "1px solid #ddd",
+  marginBottom: "4px",
+};
+
+const categoryStyle: React.CSSProperties = {
+  fontSize: "9px",
+  padding: "6px 8px 2px 8px",
+  color: "#666",
+  borderTop: "1px solid #eee",
+  marginTop: "4px",
+};
+
+const itemStyle: React.CSSProperties = {
+  fontSize: "10px",
+  padding: "3px 8px 3px 16px",
   cursor: "pointer",
-  fontSize: "14px",
-  transition: "all 0.3s",
+  borderLeft: "2px solid transparent",
 };
 
-const activeNavButtonStyle: React.CSSProperties = {
-  background: "#1890ff",
-  borderColor: "#1890ff",
+const activeItemStyle: React.CSSProperties = {
+  background: "#f5f5f5",
+  borderLeftColor: "#999",
+};
+
+const mainStyle: React.CSSProperties = {
+  flex: 1,
+  overflow: "auto",
 };
 
 export default Home;
