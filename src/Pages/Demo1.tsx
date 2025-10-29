@@ -192,7 +192,7 @@ export const Demo1: React.FC = () => {
 const containerStyle: React.CSSProperties = {
   padding: "8px",
   fontFamily: "monospace",
-  fontSize: "11px",
+  fontSize: "14px",
 };
 
 const sectionStyle: React.CSSProperties = {
@@ -212,7 +212,7 @@ const dataStyle: React.CSSProperties = {
 };
 
 const preStyle: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "13px",
   background: "#f5f5f5",
   padding: "4px",
   margin: "4px 0",
@@ -223,11 +223,11 @@ const preStyle: React.CSSProperties = {
 
 const btnStyle: React.CSSProperties = {
   margin: "2px",
-  padding: "2px 6px",
+  padding: "4px 8px",
   background: "#fff",
   color: "#333",
   border: "1px solid #ccc",
   cursor: "pointer",
-  fontSize: "10px",
+  fontSize: "13px",
   fontFamily: "monospace",
 };

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Demo1 } from "./Demo1";
 import { Demo3 } from "./Demo3";
 import { Demo4 } from "./Demo4";
-import { DemoReliabilityMemory } from "./Demo-Reliability-Memory";
-import { ReliabilityMemoryMobX } from "./Reliability-Memory-MobX";
-import { ReliabilityMemoryMyStore } from "./Reliability-Memory-MyStore";
+import { DemoReliabilityMemory } from "./MemoryTest/Demo-Reliability-Memory";
+import { ReliabilityMemoryMobX } from "./MemoryTest/Reliability-Memory-MobX";
+import { ReliabilityMemoryMyStore } from "./MemoryTest/Reliability-Memory-MyStore";
 
 type DemoType = "demo1" | "demo3" | "demo4" | "reliability-memory";
 
@@ -123,31 +123,31 @@ const containerStyle: React.CSSProperties = {
 };
 
 const sidebarStyle: React.CSSProperties = {
-  width: "140px",
+  width: "180px",
   borderRight: "1px solid #ddd",
   padding: "8px 0",
   flexShrink: 0,
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: "11px",
+  fontSize: "15px",
   fontWeight: "600",
-  padding: "4px 8px",
+  padding: "6px 12px",
   borderBottom: "1px solid #ddd",
   marginBottom: "4px",
 };
 
 const categoryStyle: React.CSSProperties = {
-  fontSize: "9px",
-  padding: "6px 8px 2px 8px",
+  fontSize: "13px",
+  padding: "6px 12px 2px 12px",
   color: "#666",
   borderTop: "1px solid #eee",
   marginTop: "4px",
 };
 
 const itemStyle: React.CSSProperties = {
-  fontSize: "10px",
-  padding: "3px 8px 3px 16px",
+  fontSize: "14px",
+  padding: "4px 12px 4px 20px",
   cursor: "pointer",
   borderLeft: "2px solid transparent",
 };

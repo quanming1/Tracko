@@ -254,10 +254,10 @@ export const useMemoryTest = ({
     if (chartRef.current) {
       chartInstanceRef.current = echarts.init(chartRef.current);
       chartInstanceRef.current.setOption({
-        title: { text: title, left: "center", textStyle: { fontSize: 12 } },
-        grid: { left: "50px", right: "20px", top: "40px", bottom: "30px" },
-        xAxis: { type: "category", data: [], name: "时间(s)", nameTextStyle: { fontSize: 10 } },
-        yAxis: { type: "value", name: "内存(MB)", nameTextStyle: { fontSize: 10 } },
+        title: { text: title, left: "center", textStyle: { fontSize: 16 } },
+        grid: { left: "60px", right: "20px", top: "50px", bottom: "40px" },
+        xAxis: { type: "category", data: [], name: "时间(s)", nameTextStyle: { fontSize: 14 } },
+        yAxis: { type: "value", name: "内存(MB)", nameTextStyle: { fontSize: 14 } },
         series: [{ data: [], type: "line", smooth: true }],
       });
     }

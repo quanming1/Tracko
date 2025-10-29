@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { makeAutoObservable as mobxMakeAutoObservable } from "mobx";
 import { observer } from "mobx-react-lite";
-import { useMemoryTest } from "../hooks/useMemoryTest";
-import { MemoryTestLayout } from "../components/MemoryTestLayout";
+import { useMemoryTest } from "../../hooks/useMemoryTest";
+import { MemoryTestLayout } from "../../components/MemoryTestLayout";
 
 // MobX Store
 class MobXTestStore {

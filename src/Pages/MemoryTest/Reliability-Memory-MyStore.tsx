@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { makeAutoObservable } from "../lib/makeAutoObservable";
-import { useMemoryTest } from "../hooks/useMemoryTest";
-import { MemoryTestLayout } from "../components/MemoryTestLayout";
+import { makeAutoObservable } from "../../lib/makeAutoObservable";
+import { useMemoryTest } from "../../hooks/useMemoryTest";
+import { MemoryTestLayout } from "../../components/MemoryTestLayout";
 
 // 自研 Store
 class MyTestStore {

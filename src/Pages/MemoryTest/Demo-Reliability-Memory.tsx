@@ -73,7 +73,7 @@ export const DemoReliabilityMemory: React.FC = () => {
 const containerStyle: React.CSSProperties = {
   padding: "8px",
   fontFamily: "monospace",
-  fontSize: "11px",
+  fontSize: "14px",
 };
 
 const sectionStyle: React.CSSProperties = {
@@ -99,21 +99,21 @@ const infoStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  width: "50px",
-  padding: "2px 4px",
-  margin: "0 4px",
+  width: "60px",
+  padding: "4px 6px",
+  margin: "0 6px",
   border: "1px solid #ccc",
-  fontSize: "11px",
+  fontSize: "14px",
   fontFamily: "monospace",
 };
 
 const btnStyle: React.CSSProperties = {
   margin: "2px",
-  padding: "4px 8px",
+  padding: "6px 12px",
   background: "#fff",
   color: "#333",
   border: "1px solid #ccc",
   cursor: "pointer",
-  fontSize: "11px",
+  fontSize: "14px",
   fontFamily: "monospace",
 };

@@ -86,7 +86,7 @@ const containerStyle: React.CSSProperties = {
 };
 
 const triggerStyle: React.CSSProperties = {
-  fontSize: "10px",
+  fontSize: "13px",
   color: "#666",
   cursor: "help",
   borderBottom: "1px dotted #999",
@@ -99,7 +99,7 @@ const tooltipStyle: React.CSSProperties = {
   top: "18px",
   background: "#fff",
   border: "1px solid #999",
-  padding: "4px",
+  padding: "8px",
   zIndex: 1000,
   minWidth: "200px",
   maxWidth: "400px",
@@ -109,7 +109,7 @@ const tooltipStyle: React.CSSProperties = {
 };
 
 const headerStyle: React.CSSProperties = {
-  fontSize: "10px",
+  fontSize: "14px",
   fontWeight: "600",
   marginBottom: "4px",
   paddingBottom: "2px",
@@ -118,7 +118,7 @@ const headerStyle: React.CSSProperties = {
 };
 
 const contentStyle: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "13px",
   margin: 0,
   lineHeight: "1.3",
   fontFamily: "monospace",

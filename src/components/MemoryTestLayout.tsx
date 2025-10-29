@@ -435,7 +435,7 @@ const containerStyle: React.CSSProperties = {
   display: "flex",
   height: "100vh",
   fontFamily: "monospace",
-  fontSize: "10px",
+  fontSize: "14px",
   background: "#fafafa",
 };
 
@@ -448,7 +448,7 @@ const leftPanelStyle: React.CSSProperties = {
 };
 
 const panelTitleStyle: React.CSSProperties = {
-  fontSize: "11px",
+  fontSize: "15px",
   fontWeight: "600",
   marginBottom: "8px",
   paddingBottom: "6px",
@@ -469,18 +469,18 @@ const headerStyle: React.CSSProperties = {
 };
 
 const chartTitleStyle: React.CSSProperties = {
-  fontSize: "12px",
+  fontSize: "16px",
   fontWeight: "600",
   marginBottom: "4px",
 };
 
 const statusStyle: React.CSSProperties = {
-  fontSize: "10px",
+  fontSize: "14px",
   marginBottom: "2px",
 };
 
 const statsStyle: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "13px",
   color: "#666",
 };
 
@@ -498,7 +498,7 @@ const boxStyle: React.CSSProperties = {
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: "10px",
+  fontSize: "14px",
   fontWeight: "600",
   marginBottom: "4px",
   color: "#333",
@@ -507,7 +507,7 @@ const titleStyle: React.CSSProperties = {
 };
 
 const opItemStyle: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "13px",
   padding: "2px 4px",
   marginBottom: "1px",
   color: "#666",

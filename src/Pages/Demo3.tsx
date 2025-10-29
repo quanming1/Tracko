@@ -71,7 +71,7 @@ export const Demo3: React.FC = () => {
 const containerStyle: React.CSSProperties = {
   padding: "8px",
   fontFamily: "monospace",
-  fontSize: "11px",
+  fontSize: "14px",
 };
 
 const sectionStyle: React.CSSProperties = {
@@ -111,11 +111,11 @@ const labelStyle: React.CSSProperties = {
 
 const btnStyle: React.CSSProperties = {
   margin: "2px",
-  padding: "2px 6px",
+  padding: "4px 8px",
   background: "#fff",
   color: "#333",
   border: "1px solid #ccc",
   cursor: "pointer",
-  fontSize: "10px",
+  fontSize: "13px",
   fontFamily: "monospace",
 };
